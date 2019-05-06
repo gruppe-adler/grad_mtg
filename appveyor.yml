@@ -19,11 +19,12 @@ clone_script:
       && git submodule update --init --recursive
       
 install:
-  - cmd: vcpkg integrate install
+  - .\vcpkg integrate install
   - vcpkg install nlohmann-json:x86-windows
   - vcpkg install nlohmann-json:x86-windows-static
   - vcpkg install nlohmann-json:x64-windows
   - vcpkg install nlohmann-json:x64-windows-static
+  - .\vcpkg integrate install
       
 before_build:
   - mkdir build
