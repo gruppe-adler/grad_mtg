@@ -19,7 +19,9 @@ clone_script:
       && git submodule update --init --recursive
 before_build:
   - vcpkg install nlohmann-json:x86-windows
+  - vcpkg install nlohmann-json:x86-windows-static
   - vcpkg install nlohmann-json:x64-windows
+  - vcpkg install nlohmann-json:x64-windows-static
   - vcpkg integrate install
   - mkdir build
   - mkdir vcproj
