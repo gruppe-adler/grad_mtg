@@ -10,10 +10,6 @@ branches:
 configuration:
 - Debug
 
-environment:
-  global:
-    BOOST_ROOT: C:\Libraries\boost_1_69_0
-    BOOST_OPTIONS: link=static runtime-link=static
 #cache: 
   #- c:\tools\vcpkg\installed\
 clone_script:
@@ -28,11 +24,12 @@ install:
   - cmd: git pull
   - cmd: vcpkg update
   - cmd: vcpkg integrate install
-  - vcpkg install nlohmann-json:x86-windows
+ # - vcpkg install nlohmann-json:x86-windows
   - vcpkg install nlohmann-json:x86-windows-static
-  - vcpkg install nlohmann-json:x64-windows
+ # - vcpkg install nlohmann-json:x64-windows
   - vcpkg install nlohmann-json:x64-windows-static
-  - .\vcpkg integrate install
+  - vcpkg install boost-program-options:x86-windows-static
+  - vcpkg install boost-program-options:x64-windows-static
   - cd %APPVEYOR_BUILD_FOLDER%
       
 before_build:
