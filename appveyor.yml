@@ -5,7 +5,7 @@ image: Visual Studio 2019 Preview
 branches:
   only:
   - master
-  - develop
+  - appveyor
 
 configuration:
 - Debug
