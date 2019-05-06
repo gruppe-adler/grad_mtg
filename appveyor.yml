@@ -26,6 +26,7 @@ install:
   - vcpkg install nlohmann-json:x64-windows
   - vcpkg install nlohmann-json:x64-windows-static
   - .\vcpkg integrate install
+  - cd %APPVEYOR_BUILD_FOLDER%
       
 before_build:
   - mkdir build
