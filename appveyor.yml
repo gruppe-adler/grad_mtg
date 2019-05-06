@@ -5,7 +5,7 @@ image: Visual Studio 2019 Preview
 branches:
   only:
   - master
-  - develop
+  - appveyor
 
 configuration:
 - Debug
@@ -39,6 +39,7 @@ build_script:
   - msbuild vcproj64\grad_mtg.sln /m 
   
 on_success:
+  # TODO
   #- ps: .\tools\ci_publish_artifacts.ps1
 
 artifacts:
