@@ -20,6 +20,7 @@ clone_script:
 before_build:
   - vcpkg install nlohmann-json:x86-windows
   - vcpkg install nlohmann-json:x64-windows
+  - vcpkg integrate install
   - mkdir build
   - mkdir vcproj
   - mkdir vcproj64
