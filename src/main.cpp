@@ -49,28 +49,28 @@ void intercept::register_interfaces() {
 
 void intercept::pre_init() {
     intercept::sqf::diag_log("The Intercept template plugin is running!");
-	sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
+    sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
+    
+    basePath = "grad_mtg";
 
-	basePath = "grad_mtg";
+    if (!fs::exists(basePath)) {
+        fs::create_directories(basePath);
+    }
+    /*
+    TODO: config and stuff
+    try {
+        fs::path configFilePath("@grad_mtg/Config.ini");
 
-	if (!fs::exists(basePath)) {
-		fs::create_directories(basePath);
-	}
-	/*
-	TODO: config and stuff
-	try {
-		fs::path configFilePath("@grad_mtg/Config.ini");
+        if (!fs::exists(configFilePath))
+            throw std::filesystem::filesystem_error("File not found", configFilePath, std::error_code());
 
-		if (!fs::exists(configFilePath))
-			throw std::filesystem::filesystem_error("File not found", configFilePath, std::error_code());
+        pt::ptree root;
 
-		pt::ptree root;
-
-	}
-	catch (std::exception& ex) {
-		sqf::diag_log(ex.what());
-	}
-	*/
+    }
+    catch (std::exception& ex) {
+        sqf::diag_log(ex.what());
+    }
+    */
 }
 
 /*
@@ -79,265 +79,265 @@ From: https://docs.microsoft.com/en-us/windows/desktop/gdiplus/-gdiplus-retrievi
 */
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
-	UINT  num = 0;          // number of image encoders
-	UINT  size = 0;         // size of the image encoder array in bytes
+    UINT  num = 0;          // number of image encoders
+    UINT  size = 0;         // size of the image encoder array in bytes
 
-	Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
+    Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
 
-	Gdiplus::GetImageEncodersSize(&num, &size);
-	if (size == 0)
-		return -1;  // Failure
+    Gdiplus::GetImageEncodersSize(&num, &size);
+    if (size == 0)
+        return -1;  // Failure
 
-	pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
-	if (pImageCodecInfo == NULL)
-		return -1;  // Failure
+    pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
+    if (pImageCodecInfo == NULL)
+        return -1;  // Failure
 
-	GetImageEncoders(num, size, pImageCodecInfo);
+    GetImageEncoders(num, size, pImageCodecInfo);
 
-	for (UINT j = 0; j < num; ++j)
-	{
-		if (wcscmp(pImageCodecInfo[j].MimeType, format) == 0)
-		{
-			*pClsid = pImageCodecInfo[j].Clsid;
-			free(pImageCodecInfo);
-			return j;  // Success
-		}
-	}
+    for (UINT j = 0; j < num; ++j)
+    {
+        if (wcscmp(pImageCodecInfo[j].MimeType, format) == 0)
+        {
+            *pClsid = pImageCodecInfo[j].Clsid;
+            free(pImageCodecInfo);
+            return j;  // Success
+        }
+    }
 
-	free(pImageCodecInfo);
-	return -1;  // Failure
+    free(pImageCodecInfo);
+    return -1;  // Failure
 }
 
 bool takeScreenShot(std::string file_name, types::vector2 tl, int w, int h) {
 
-	// get the window/rectangle
-	RECT rc;
-	HWND hwnd = FindWindow(_T("Arma 3"), NULL);    //the window can't be min
-	if (hwnd == NULL)
-	{
-		std::cout << "Couldn't find Arma Window!" << std::endl;
-		return false;
-	}
-	GetClientRect(hwnd, &rc);
+    // get the window/rectangle
+    RECT rc;
+    HWND hwnd = FindWindow(_T("Arma 3"), NULL);    //the window can't be min
+    if (hwnd == NULL)
+    {
+        std::cout << "Couldn't find Arma Window!" << std::endl;
+        return false;
+    }
+    GetClientRect(hwnd, &rc);
 
-	// create print dst
-	HDC hdcScreenPrintDst = GetDC(NULL);
-	HDC hdcPrintDst = CreateCompatibleDC(hdcScreenPrintDst);
-	HBITMAP hbmpPrint = CreateCompatibleBitmap(hdcScreenPrintDst,
-		rc.right - rc.left, rc.bottom - rc.top);
-	SelectObject(hdcPrintDst, hbmpPrint);
+    // create print dst
+    HDC hdcScreenPrintDst = GetDC(NULL);
+    HDC hdcPrintDst = CreateCompatibleDC(hdcScreenPrintDst);
+    HBITMAP hbmpPrint = CreateCompatibleBitmap(hdcScreenPrintDst,
+        rc.right - rc.left, rc.bottom - rc.top);
+    SelectObject(hdcPrintDst, hbmpPrint);
 
-	// create crop dst
-	HDC hdcScreenCropDst = GetDC(NULL);
-	HDC hdcCropDst = CreateCompatibleDC(hdcScreenCropDst);
-	HBITMAP hbmpCropDst = CreateCompatibleBitmap(hdcScreenCropDst, w, h);
-	SelectObject(hdcCropDst, hbmpCropDst);
+    // create crop dst
+    HDC hdcScreenCropDst = GetDC(NULL);
+    HDC hdcCropDst = CreateCompatibleDC(hdcScreenCropDst);
+    HBITMAP hbmpCropDst = CreateCompatibleBitmap(hdcScreenCropDst, w, h);
+    SelectObject(hdcCropDst, hbmpCropDst);
 
-	// Print the entire screen
-	PrintWindow(hwnd, hdcPrintDst, PW_CLIENTONLY);
+    // Print the entire screen
+    PrintWindow(hwnd, hdcPrintDst, PW_CLIENTONLY);
 
-	// Crop the image
-	BitBlt(hdcCropDst, 0, 0, w, h, hdcPrintDst, (int)tl.x, (int)tl.y, SRCCOPY);
+    // Crop the image
+    BitBlt(hdcCropDst, 0, 0, w, h, hdcPrintDst, (int)tl.x, (int)tl.y, SRCCOPY);
 
-	// init gdi
-	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-	ULONG_PTR gdiplusToken;
-	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+    // init gdi
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-	// Load the WINAPI Bitmap into a Gdi+ Bitmap
-	auto gdiBitmap = new Gdiplus::Bitmap(hbmpCropDst, NULL);
+    // Load the WINAPI Bitmap into a Gdi+ Bitmap
+    auto gdiBitmap = new Gdiplus::Bitmap(hbmpCropDst, NULL);
 
-	// Create target Bitmap with 24bitdepth
-	auto gdiBitmapDst = new Gdiplus::Bitmap(RESOLUTION, RESOLUTION, PixelFormat24bppRGB);
+    // Create target Bitmap with 24bitdepth
+    auto gdiBitmapDst = new Gdiplus::Bitmap(RESOLUTION, RESOLUTION, PixelFormat24bppRGB);
 
-	// Draw/Copy it
-	auto gdiGraphics = new Gdiplus::Graphics(gdiBitmapDst);
-	gdiGraphics->DrawImage(gdiBitmap, Gdiplus::Rect(0, 0, RESOLUTION, RESOLUTION));
+    // Draw/Copy it
+    auto gdiGraphics = new Gdiplus::Graphics(gdiBitmapDst);
+    gdiGraphics->DrawImage(gdiBitmap, Gdiplus::Rect(0, 0, RESOLUTION, RESOLUTION));
 
-	// Get class id for the JPG encoder
-	CLSID pngClsid;
-	GetEncoderClsid(L"image/jpeg", &pngClsid);
+    // Get class id for the JPG encoder
+    CLSID pngClsid;
+    GetEncoderClsid(L"image/jpeg", &pngClsid);
 
-	// convert the filename into wchar_t because of winapi
-	std::wstring widestr = std::wstring(file_name.begin(), file_name.end());
-	const wchar_t* w_file_name = widestr.c_str();
-	gdiBitmapDst->Save(w_file_name, &pngClsid, NULL);
+    // convert the filename into wchar_t because of winapi
+    std::wstring widestr = std::wstring(file_name.begin(), file_name.end());
+    const wchar_t* w_file_name = widestr.c_str();
+    gdiBitmapDst->Save(w_file_name, &pngClsid, NULL);
 
-	// Cleanup
-	DeleteDC(hdcPrintDst);
-	DeleteDC(hdcCropDst);
+    // Cleanup
+    DeleteDC(hdcPrintDst);
+    DeleteDC(hdcCropDst);
 
-	DeleteObject(hbmpPrint);
-	DeleteObject(hbmpCropDst);
+    DeleteObject(hbmpPrint);
+    DeleteObject(hbmpCropDst);
 
-	ReleaseDC(NULL, hdcScreenPrintDst);
-	ReleaseDC(NULL, hdcScreenCropDst);
+    ReleaseDC(NULL, hdcScreenPrintDst);
+    ReleaseDC(NULL, hdcScreenCropDst);
 
-	delete gdiBitmap;
-	delete gdiBitmapDst;
-	delete gdiGraphics;
+    delete gdiBitmap;
+    delete gdiBitmapDst;
+    delete gdiGraphics;
 
-	Gdiplus::GdiplusShutdown(gdiplusToken);
+    Gdiplus::GdiplusShutdown(gdiplusToken);
 
-	return true;
+    return true;
 }
 
 void mapTileGenerator(int levelOfDetail) {
 
-	auto tileSize = (int)(100 * pow(2, 8 - levelOfDetail));
-	auto folderBasePath = basePath / sqf::world_name() / std::to_string(tileSize);
+    auto tileSize = (int)(100 * pow(2, 8 - levelOfDetail));
+    auto folderBasePath = basePath / sqf::world_name() / std::to_string(tileSize);
 
-	std::this_thread::sleep_for(std::chrono::seconds(5));
-	{
-		client::invoker_lock thread_lock;
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    {
+        client::invoker_lock thread_lock;
 
-		sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", true);
+        sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", true);
 
-		sqf::cut_rsc(LAYER, "RscTitleDisplayEmpty", "PLAIN", 1.0f, false);
-		auto display = sqf::get_variable(sqf::ui_namespace(), "RscTitleDisplayEmpty");
-		auto map = sqf::ctrl_create(display, "RscMapControl", 1);
+        sqf::cut_rsc(LAYER, "RscTitleDisplayEmpty", "PLAIN", 1.0f, false);
+        auto display = sqf::get_variable(sqf::ui_namespace(), "RscTitleDisplayEmpty");
+        auto map = sqf::ctrl_create(display, "RscMapControl", 1);
 
-		sqf::ctrl_set_position(map, sqf::safe_zone_x(), sqf::safe_zone_y(), sqf::safe_zone_w(), sqf::safe_zone_h());
-		sqf::ctrl_commit(map, 0);
+        sqf::ctrl_set_position(map, sqf::safe_zone_x(), sqf::safe_zone_y(), sqf::safe_zone_w(), sqf::safe_zone_h());
+        sqf::ctrl_commit(map, 0);
 
-		auto numTiles = (int)floor(sqf::world_size() / tileSize);
+        auto numTiles = (int)floor(sqf::world_size() / tileSize);
 
-		// auto display46 = sqf::find_display(46);
-		// sqf::display_add_event_handler(display46, "KeyDown", "params ['_displayorcontrol', '_key', '_shift', '_ctrl', '_alt'];	if (_key isEqualTo 88) then{ map_tiles_trigger = true; }");
-		for (int yPos = numTiles; yPos >= 0; yPos--) {
-			for (int xPos = 0; xPos <= numTiles; xPos++) {
+        // auto display46 = sqf::find_display(46);
+        // sqf::display_add_event_handler(display46, "KeyDown", "params ['_displayorcontrol', '_key', '_shift', '_ctrl', '_alt'];	if (_key isEqualTo 88) then{ map_tiles_trigger = true; }");
+        for (int yPos = numTiles; yPos >= 0; yPos--) {
+            for (int xPos = 0; xPos <= numTiles; xPos++) {
 
-				// check if we need to stop
-				if (stop) {
-					sqf::cut_fade_out(LAYER, 0);
-					sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
-					return;
-				}
+                // check if we need to stop
+                if (stop) {
+                    sqf::cut_fade_out(LAYER, 0);
+                    sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
+                    return;
+                }
 
-				// sqf::set_variable(sqf::mission_namespace(), "map_tiles_trigger", false);
-				auto pos = types::vector2(xPos * tileSize + tileSize / 2, yPos * tileSize + tileSize / 2);
-				sqf::ctrl_map_anim_add(map, 0.0f, 0.01f * tileSize / 100, pos);
-				sqf::ctrl_map_anim_commit(map);
+                // sqf::set_variable(sqf::mission_namespace(), "map_tiles_trigger", false);
+                auto pos = types::vector2(xPos * tileSize + tileSize / 2, yPos * tileSize + tileSize / 2);
+                sqf::ctrl_map_anim_add(map, 0.0f, 0.01f * tileSize / 100, pos);
+                sqf::ctrl_map_anim_commit(map);
 
-				// TODO: check main thread stuff sync
-				// wait for map to actually commit because ctrlMapWorldToScreen 
-				// won't work directly after mapCommit
-				while(!sqf::ctrl_map_anim_done(map)) {
-					thread_lock.unlock();
-				 	std::this_thread::sleep_for(std::chrono::milliseconds(1));
-					thread_lock.lock();
-				}
+                // TODO: check main thread stuff sync
+                // wait for map to actually commit because ctrlMapWorldToScreen 
+                // won't work directly after mapCommit
+                while(!sqf::ctrl_map_anim_done(map)) {
+                    thread_lock.unlock();
+                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    thread_lock.lock();
+                }
 
-				// find top left and bottom right corner on the screen in shitty arma units
-				// shitty (arma) units == absolute position
-				auto coordsTL = types::vector2(xPos * tileSize, yPos * tileSize + tileSize);
-				auto coordsBR = types::vector2(xPos * tileSize + tileSize, yPos * tileSize);
-				auto screenTL = sqf::ctrl_map_world_to_screen(map, coordsTL);
-				auto screenBR = sqf::ctrl_map_world_to_screen(map, coordsBR);
+                // find top left and bottom right corner on the screen in shitty arma units
+                // shitty (arma) units == absolute position
+                auto coordsTL = types::vector2(xPos * tileSize, yPos * tileSize + tileSize);
+                auto coordsBR = types::vector2(xPos * tileSize + tileSize, yPos * tileSize);
+                auto screenTL = sqf::ctrl_map_world_to_screen(map, coordsTL);
+                auto screenBR = sqf::ctrl_map_world_to_screen(map, coordsBR);
 
-				// shitty units origin (in pixels) + shitty units converted to pixels
-				auto pixelTL = types::vector2(
-					abs(sqf::safe_zone_x()) / sqf::pixel_w() + screenTL.x / sqf::pixel_w(),
-					abs(sqf::safe_zone_y()) / sqf::pixel_h() + screenTL.y / sqf::pixel_h()
-				);
+                // shitty units origin (in pixels) + shitty units converted to pixels
+                auto pixelTL = types::vector2(
+                    abs(sqf::safe_zone_x()) / sqf::pixel_w() + screenTL.x / sqf::pixel_w(),
+                    abs(sqf::safe_zone_y()) / sqf::pixel_h() + screenTL.y / sqf::pixel_h()
+                );
 
-				auto w = (int)floor((screenBR.x - screenTL.x) / sqf::pixel_w());
-				auto h = (int)floor((screenBR.y - screenTL.y) / sqf::pixel_h());
+                auto w = (int)floor((screenBR.x - screenTL.x) / sqf::pixel_w());
+                auto h = (int)floor((screenBR.y - screenTL.y) / sqf::pixel_h());
 
-				// Debug
-				sqf::diag_log(pixelTL);
-				sqf::diag_log(w);
-				sqf::diag_log(h);
-				sqf::diag_log('---');
+                // Debug
+                sqf::diag_log(pixelTL);
+                sqf::diag_log(w);
+                sqf::diag_log(h);
+                sqf::diag_log('---');
 
-				thread_lock.unlock();
+                thread_lock.unlock();
 
-				std::string filePath("");
+                std::string filePath("");
 
-				try {
-					// arma coords start in the bootom left but tiles should start in the top left corner
-					auto path = fs::absolute(folderBasePath / std::to_string((int)numTiles - yPos));
+                try {
+                    // arma coords start in the bootom left but tiles should start in the top left corner
+                    auto path = fs::absolute(folderBasePath / std::to_string((int)numTiles - yPos));
 
-					if (!fs::exists(path)) {
-						fs::create_directories(path);
-					}
+                    if (!fs::exists(path)) {
+                        fs::create_directories(path);
+                    }
 
-					filePath = (path / std::to_string(xPos)).string();
-					filePath.append(".png");
-				}
-				catch (fs::filesystem_error& ex) {
-					sqf::diag_log(ex.what());
-				}
+                    filePath = (path / std::to_string(xPos)).string();
+                    filePath.append(".png");
+                }
+                catch (fs::filesystem_error& ex) {
+                    sqf::diag_log(ex.what());
+                }
 
-				if (filePath.empty()) {
-					sqf::diag_log("FilePath failed!");
-				}
-				else {
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-					takeScreenShot(filePath, pixelTL, w, h);
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-				
-				thread_lock.lock();
-			}
-		}
+                if (filePath.empty()) {
+                    sqf::diag_log("FilePath failed!");
+                }
+                else {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    takeScreenShot(filePath, pixelTL, w, h);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                }
+                
+                thread_lock.lock();
+            }
+        }
 
-		sqf::cut_fade_out(LAYER, 0);
-		sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
-		sqf::hint("Done");
-	}
+        sqf::cut_fade_out(LAYER, 0);
+        sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
+        sqf::hint("Done");
+    }
 }
 
 game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
-	if (right_arg.size() != 2) {
-		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Right parameter count != 2"));
-		return false;
-	}
-	else if (right_arg[0].type_enum() != game_data_type::SCALAR || right_arg[1].type_enum() != game_data_type::SCALAR) {
-		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
-		return false;
-	}
-	nl::json ret;
-	ret["worldName"] = sqf::world_name();
-	ret["worldSize"] = (int)sqf::world_size();
-	ret["displayName"] = sqf::world_name();
-	ret["minZoom"] = (int)right_arg[0];
-	ret["maxZoom"] = (int)right_arg[1];
-	
-	auto metaPath = basePath / sqf::world_name();
+    if (right_arg.size() != 2) {
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Right parameter count != 2"));
+        return false;
+    }
+    else if (right_arg[0].type_enum() != game_data_type::SCALAR || right_arg[1].type_enum() != game_data_type::SCALAR) {
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
+        return false;
+    }
+    nl::json ret;
+    ret["worldName"] = sqf::world_name();
+    ret["worldSize"] = (int)sqf::world_size();
+    ret["displayName"] = sqf::world_name();
+    ret["minZoom"] = (int)right_arg[0];
+    ret["maxZoom"] = (int)right_arg[1];
+    
+    auto metaPath = basePath / sqf::world_name();
 
-	if (!fs::exists(metaPath)) {
-		fs::create_directories(metaPath);
-	}
+    if (!fs::exists(metaPath)) {
+        fs::create_directories(metaPath);
+    }
 
-	std::ofstream out(metaPath / "meta.json");
-	out << std::setw(4) << ret << std::endl;
-	out.close();
-	return true;
+    std::ofstream out(metaPath / "meta.json");
+    out << std::setw(4) << ret << std::endl;
+    out.close();
+    return true;
 }
 
 game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
-	if (right_arg.type_enum() != game_data_type::SCALAR) {
-		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
-		return false;
-	} else if ((int)right_arg < 0 || (int)right_arg > 8) {
-		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("argument has to be >= 0 and <= 8"));
-		return false;
-	}
-	stop = false;
-	std::thread iteraterThread(mapTileGenerator, (int)right_arg);
-	iteraterThread.detach();
-	return true;
+    if (right_arg.type_enum() != game_data_type::SCALAR) {
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
+        return false;
+    } else if ((int)right_arg < 0 || (int)right_arg > 8) {
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("argument has to be >= 0 and <= 8"));
+        return false;
+    }
+    stop = false;
+    std::thread iteraterThread(mapTileGenerator, (int)right_arg);
+    iteraterThread.detach();
+    return true;
 }
 
 game_value stopMapTileGen() {
-	stop = true;
-	return true;
+    stop = true;
+    return true;
 }
 
 
 void intercept::pre_start() {
-	static auto grad_tig_start = client::host::register_sqf_command("grad_mtg_start", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::SCALAR);
-	static auto grad_tig_stop = client::host::register_sqf_command("grad_mtg_stop", "Stops the map tile generation", userFunctionWrapper<stopMapTileGen>, game_data_type::BOOL);
-	static auto grad_tig_meta = client::host::register_sqf_command("grad_mtg_meta", "Generates a meta.json", generateMetaFile, game_data_type::BOOL, game_data_type::ARRAY);
+    static auto grad_tig_start = client::host::register_sqf_command("grad_mtg_start", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::SCALAR);
+    static auto grad_tig_stop = client::host::register_sqf_command("grad_mtg_stop", "Stops the map tile generation", userFunctionWrapper<stopMapTileGen>, game_data_type::BOOL);
+    static auto grad_tig_meta = client::host::register_sqf_command("grad_mtg_meta", "Generates a meta.json", generateMetaFile, game_data_type::BOOL, game_data_type::ARRAY);
 }
