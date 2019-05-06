@@ -9,8 +9,8 @@ branches:
 
 configuration:
 - Debug
-cache: 
-  - c:\tools\vcpkg\installed\
+#cache: 
+  #- c:\tools\vcpkg\installed\
 clone_script:
   - cmd: >-
       git clone -q --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git %APPVEYOR_BUILD_FOLDER%
