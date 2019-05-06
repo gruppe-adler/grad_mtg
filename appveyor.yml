@@ -10,8 +10,8 @@ branches:
 configuration:
 - Debug
 
-#cache: 
-  #- c:\tools\vcpkg\installed\
+cache: 
+  - c:\tools\vcpkg\installed\
 clone_script:
   - cmd: >-
       git clone -q --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git %APPVEYOR_BUILD_FOLDER%
@@ -28,8 +28,8 @@ install:
   - vcpkg install nlohmann-json:x86-windows-static
  # - vcpkg install nlohmann-json:x64-windows
   - vcpkg install nlohmann-json:x64-windows-static
-  - vcpkg install boost-program-options:x86-windows-static
-  - vcpkg install boost-program-options:x64-windows-static
+  - vcpkg install boost-program-options:x86-windows-static boost-property-tree:x86-windows-static
+  - vcpkg install boost-program-options:x64-windows-static boost-property-tree:x64-windows-static
   - cd %APPVEYOR_BUILD_FOLDER%
       
 before_build:
