@@ -182,10 +182,15 @@ bool takeScreenShot(std::string file_name, types::vector2 tl, int w, int h) {
 	return true;
 }
 
-void mapTileGenerator(int levelOfDetail) {
+void mapTileGenerator(int levelOfDetail, int type = 0) {
+
+	auto mapType = "topo";
+	if (type > 0) {
+		mapType = "sat";
+	}
 
 	auto tileSize = (int)(100 * pow(2, 8 - levelOfDetail));
-	auto folderBasePath = basePath / sqf::world_name() / std::to_string(tileSize);
+	auto folderBasePath = basePath / sqf::world_name() / mapType / std::to_string(tileSize);
 
 	std::this_thread::sleep_for(std::chrono::seconds(5));
 	{
@@ -195,7 +200,7 @@ void mapTileGenerator(int levelOfDetail) {
 
 		sqf::cut_rsc(LAYER, "RscTitleDisplayEmpty", "PLAIN", 1.0f, false);
 		auto display = sqf::get_variable(sqf::ui_namespace(), "RscTitleDisplayEmpty");
-		auto map = sqf::ctrl_create(display, "RscMapControl", 1);
+		auto map = sqf::ctrl_create(display, "grad_mtg_ctrlMap_".append(mapType), 1);
 
 		sqf::ctrl_set_position(map, sqf::safe_zone_x(), sqf::safe_zone_y(), sqf::safe_zone_w(), sqf::safe_zone_h());
 		sqf::ctrl_commit(map, 0);
@@ -303,6 +308,7 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
 	ret["displayName"] = sqf::world_name();
 	ret["minZoom"] = (int)right_arg[0];
 	ret["maxZoom"] = (int)right_arg[1];
+	ret["types"] = ["topo", "sat"];
 	
 	auto metaPath = basePath / sqf::world_name();
 
@@ -317,15 +323,43 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
 }
 
 game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
-	if (right_arg.type_enum() != game_data_type::SCALAR) {
-		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
-		return false;
-	} else if ((int)right_arg < 0 || (int)right_arg > 8) {
-		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("argument has to be >= 0 and <= 8"));
+
+	int lod = -1;
+	int type = 0;
+	if (right_arg.size() == 2) {
+		// two params given
+
+		if (right_arg[0].type_enum() != game_data_type::SCALAR) {
+			gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("LOD has to be a number"));
+			return false;
+		}
+
+		if (right_arg[1].type_enum() != game_data_type::SCALAR) {
+			gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Map-Type has to be a number"));
+			return false;
+		}
+
+		lod = (int)right_arg[0];
+		type = (int)right_arg[1];
+
+	} else {
+		// one param given
+
+		if (right_arg.type_enum() != game_data_type::SCALAR) {
+			gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("LOD has to be a number"));
+			return false;
+		}
+
+		lod = (int)right_arg
+	}
+	
+	if (lod < 0 || lod > 8) {
+		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("LOD has to be >= 0 and <= 8"));
 		return false;
 	}
+
 	stop = false;
-	std::thread iteraterThread(mapTileGenerator, (int)right_arg);
+	std::thread iteraterThread(mapTileGenerator, lod, type);
 	iteraterThread.detach();
 	return true;
 }
