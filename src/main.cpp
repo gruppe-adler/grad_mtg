@@ -315,9 +315,9 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
                     sqf::diag_log("FilePath failed!");
                 }
                 else {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
                     takeScreenShot(filePath, pixelTL, w, h);
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 }
                 
                 thread_lock.lock();

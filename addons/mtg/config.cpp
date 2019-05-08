@@ -31,6 +31,8 @@ class grad_mtg_ctrlMap_sat: ctrlMapMain
     fontInfo = "RobotoCondensedLight";
     fontLabel = "RobotoCondensedLight";
     drawShaded = 0;
+    drawObjects = 0;
+    showMarkers = 0;
 
     class Legend
     {
