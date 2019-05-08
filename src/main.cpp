@@ -182,6 +182,41 @@ bool takeScreenShot(std::string file_name, types::vector2 tl, int w, int h) {
     return true;
 }
 
+/*
+    Calculates zoom factor for a 100m tile to be as wide as the set resolution 
+ */
+float calcZoomFactor(types::control map, client::invoker_lock* thread_lock) {
+    const auto COORDS_CENTER = types::vector2(50, 50);
+    const auto COORDS_TL = types::vector2(0, 100);
+    const auto COORDS_BR = types::vector2(100, 0);
+
+    float zoomFactor = 1.0f;
+    float widthInPixels = 0.0f;
+
+    while (abs(widthInPixels - RESOLUTION) > 0.1)
+    {
+        sqf::ctrl_map_anim_add(map, 0.0f, zoomFactor, COORDS_CENTER);
+        sqf::ctrl_map_anim_commit(map);
+
+        // wait for map to actually commit because ctrlMapWorldToScreen 
+        // won't work directly after mapCommit
+        while(!sqf::ctrl_map_anim_done(map)) {
+            thread_lock->unlock();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            thread_lock->lock();
+        }
+
+        // calculate width of 100m grid with current zoom factor
+        auto screenTL = sqf::ctrl_map_world_to_screen(map, COORDS_TL);
+        auto screenBR = sqf::ctrl_map_world_to_screen(map, COORDS_BR);
+        widthInPixels = (screenBR.x - screenTL.x) / sqf::pixel_w();
+
+        zoomFactor = zoomFactor / (RESOLUTION / widthInPixels);
+    }
+
+    return zoomFactor;
+}
+
 void mapTileGenerator(int levelOfDetail, int type = 0) {
 
     auto mapType = "topo";
@@ -207,6 +242,8 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
 
         auto numTiles = (int)floor(sqf::world_size() / tileSize);
 
+        float zoomFactor = calcZoomFactor(map, &thread_lock);
+      
         // auto display46 = sqf::find_display(46);
         // sqf::display_add_event_handler(display46, "KeyDown", "params ['_displayorcontrol', '_key', '_shift', '_ctrl', '_alt'];	if (_key isEqualTo 88) then{ map_tiles_trigger = true; }");
         for (int yPos = numTiles; yPos >= 0; yPos--) {
@@ -221,15 +258,15 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
 
                 // sqf::set_variable(sqf::mission_namespace(), "map_tiles_trigger", false);
                 auto pos = types::vector2(xPos * tileSize + tileSize / 2, yPos * tileSize + tileSize / 2);
-                sqf::ctrl_map_anim_add(map, 0.0f, 0.01f * tileSize / 100, pos);
+
+                sqf::ctrl_map_anim_add(map, 0.0f, zoomFactor * tileSize / 100, pos);
                 sqf::ctrl_map_anim_commit(map);
 
-                // TODO: check main thread stuff sync
                 // wait for map to actually commit because ctrlMapWorldToScreen 
                 // won't work directly after mapCommit
                 while(!sqf::ctrl_map_anim_done(map)) {
                     thread_lock.unlock();
-                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     thread_lock.lock();
                 }
 
@@ -302,12 +339,19 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
         gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
         return false;
     }
+
+    auto worldSize = (int)sqf::world_size();
+    auto worldName = sqf::world_name();
+    auto gridOffsetX = (int)sqf::get_number(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("Grid") >> ("offsetX"));
+    auto gridOffsetY = (int)sqf::get_number(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("Grid") >> ("offsetY"));
+
     nl::json ret;
-    ret["worldName"] = sqf::world_name();
-    ret["worldSize"] = (int)sqf::world_size();
-    ret["displayName"] = sqf::world_name();
+    ret["worldName"] = worldName;
+    ret["worldSize"] = worldSize;
+    ret["displayName"] = sqf::get_text(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("description"));
     ret["minZoom"] = (int)right_arg[0];
     ret["maxZoom"] = (int)right_arg[1];
+    ret["grid"] = { {"offsetX", gridOffsetX }, {"offsetY", gridOffsetY } };
     ret["layers"] = { { {"name", "Topographic"}, {"path", "topo/"} }, { {"name", "Satellite"}, {"path", "sat/"} } };
     
     auto metaPath = basePath / sqf::world_name();
