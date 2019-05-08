@@ -41,9 +41,9 @@ build:
 
 build_script:
   - msbuild vcproj64\grad_mtg.sln /m 
+  - tools\hemtt.exe build
   
 on_success:
-  - tools\hemtt.exe build
   # TODO
   #- ps: .\tools\ci_publish_artifacts.ps1
 
