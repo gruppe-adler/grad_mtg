@@ -25,23 +25,23 @@ class ctrlMapMain;
 class grad_mtg_ctrlMap_sat: ctrlMapMain
 {
     widthRailWay = 4;
-    colorForest[] = {0.624,0.78,0.388,0.5};
-    colorForestBorder[]={0,0,0,0};
-    colorRailWay[]={1,0,0,1};
+    colorForest[] = {0.624, 0.78, 0.388, 0.5};
+    colorForestBorder[] = {0, 0, 0, 0};
+    colorRailWay[] = {1, 0, 0, 1};
     fontInfo = "RobotoCondensedLight";
     fontLabel = "RobotoCondensedLight";
-    drawShaded=0;
+    drawShaded = 0;
 
     class Legend
     {
-        x=safeZoneW;
-        y=safeZoneH;
-        w=0;
-        h=0;
-        color[]={0,0,0,0};
-        colorBackground[]={0,0,0,0};
-        font="RobotoCondensedLight";
-        sizeEX="0";
+        x = "safeZoneW";
+        y = "safeZoneH";
+        w = 0;
+        h = 0;
+        color[] = {0, 0, 0, 0};
+        colorBackground[] = {0, 0, 0, 0};
+        font = "RobotoCondensedLight";
+        sizeEX = "0";
     };
 };
 
