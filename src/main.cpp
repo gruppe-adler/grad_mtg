@@ -297,12 +297,19 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
 		gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
 		return false;
 	}
+
+	auto worldSize = (int)sqf::world_size();
+	auto worldName = sqf::world_name();
+	auto gridOffsetX = (int)sqf::get_number( sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> (worldName) >>("Grid") >> ("offsetX") );
+	auto gridOffsetY = (int)sqf::get_number( sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> (worldName) >>("Grid") >> ("offsetY") );
+
 	nl::json ret;
-	ret["worldName"] = sqf::world_name();
-	ret["worldSize"] = (int)sqf::world_size();
+	ret["worldName"] = worldName;
+	ret["worldSize"] = worldSize;
 	ret["displayName"] = sqf::world_name();
 	ret["minZoom"] = (int)right_arg[0];
 	ret["maxZoom"] = (int)right_arg[1];
+	ret["grid"] = { {"offsetX", gridOffsetX }, {"offsetY", gridOffsetY } };
 	
 	auto metaPath = basePath / sqf::world_name();
 
