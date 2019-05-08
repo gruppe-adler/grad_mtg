@@ -43,6 +43,7 @@ build_script:
   - msbuild vcproj64\grad_mtg.sln /m 
   
 on_success:
+  - tools\hemtt.exe build
   # TODO
   #- ps: .\tools\ci_publish_artifacts.ps1
 
@@ -51,3 +52,5 @@ artifacts:
   name: win64_dll
 - path: build\win64\Debug\grad_mtg_x64.pdb
   name: win64_pdb
+- path: addons\grad_mtg.pbo
+  name: grad_mtg_pbo

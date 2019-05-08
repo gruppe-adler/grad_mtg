@@ -34,6 +34,9 @@
 # Arma Addons
 *.pbo
 
+# HEMTT
+!tools/hemtt.exe
+
 # Others
 .vs
 build

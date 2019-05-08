@@ -1,0 +1,8 @@
+{
+  "name": "mtg",
+  "prefix": "grad",
+  "author": "Gruppe Adler",
+  "files": [
+    "mod.cpp"
+  ]
+}
