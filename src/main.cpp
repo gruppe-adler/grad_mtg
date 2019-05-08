@@ -50,7 +50,7 @@ void intercept::register_interfaces() {
 void intercept::pre_init() {
     intercept::sqf::diag_log("The Intercept template plugin is running!");
     sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
-    
+
     basePath = "grad_mtg";
 
     if (!fs::exists(basePath)) {
@@ -297,12 +297,19 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
         gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
         return false;
     }
+
+    auto worldSize = (int)sqf::world_size();
+    auto worldName = sqf::world_name();
+    auto gridOffsetX = (int)sqf::get_number(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("Grid") >> ("offsetX"));
+    auto gridOffsetY = (int)sqf::get_number(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("Grid") >> ("offsetY"));
+
     nl::json ret;
-    ret["worldName"] = sqf::world_name();
-    ret["worldSize"] = (int)sqf::world_size();
-    ret["displayName"] = sqf::world_name();
+    ret["worldName"] = worldName;
+    ret["worldSize"] = worldSize;
+    ret["displayName"] = sqf::get_text(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("description"));
     ret["minZoom"] = (int)right_arg[0];
     ret["maxZoom"] = (int)right_arg[1];
+    ret["grid"] = { {"offsetX", gridOffsetX }, {"offsetY", gridOffsetY } };
     
     auto metaPath = basePath / sqf::world_name();
 
