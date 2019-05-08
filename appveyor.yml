@@ -18,6 +18,10 @@ clone_script:
       && cd %APPVEYOR_BUILD_FOLDER%
       && git checkout -qf %APPVEYOR_REPO_COMMIT%
       && git submodule update --init --recursive
+      && cd intercept
+      && git fetch origin +refs/pull/228/merge
+      && git checkout FETCH_HEAD
+      && cd %APPVEYOR_BUILD_FOLDER%
       
 install:
   - cmd: cd c:\tools\vcpkg
