@@ -1,0 +1,57 @@
+version: "{build}"
+
+image: Visual Studio 2019 Preview
+
+branches:
+  except:
+    - playground
+
+configuration:
+- Debug
+
+cache: 
+  - c:\tools\vcpkg\installed\
+
+clone_script:
+  - cmd: >-
+      git clone -q --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git %APPVEYOR_BUILD_FOLDER%
+      && cd %APPVEYOR_BUILD_FOLDER%
+      && git checkout -qf %APPVEYOR_REPO_COMMIT%
+      && git submodule update --init --recursive
+      && cd intercept
+      && git fetch origin +refs/pull/228/merge
+      && git checkout FETCH_HEAD
+      && cd %APPVEYOR_BUILD_FOLDER%
+      
+install:
+  - cd c:\tools\vcpkg
+  - git pull
+  - vcpkg update
+  - vcpkg integrate install
+  - vcpkg install nlohmann-json:x64-windows-static
+  - vcpkg install boost-program-options:x64-windows-static boost-property-tree:x64-windows-static
+  - cd %APPVEYOR_BUILD_FOLDER%
+      
+before_build:
+  - mkdir build
+  - mkdir vcproj64
+  - cd vcproj64
+  - cmake .. -G "Visual Studio 15 2017 Win64" -DUSE_64BIT_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static
+  - cd ..
+
+build:
+  parallel: true
+  verbosity: minimal
+
+build_script:
+  - msbuild vcproj64\grad_mtg.sln /m 
+  
+on_success:
+  # TODO
+  #- ps: .\tools\ci_publish_artifacts.ps1
+
+artifacts:
+- path: build\win64\Debug\grad_mtg_x64.dll
+  name: win64_dll
+- path: build\win64\Debug\grad_mtg_x64.pdb
+  name: win64_pdb
