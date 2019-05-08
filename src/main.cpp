@@ -182,6 +182,41 @@ bool takeScreenShot(std::string file_name, types::vector2 tl, int w, int h) {
     return true;
 }
 
+/*
+    Calculates zoom factor for a 100m tile to be as wide as the set resolution 
+ */
+float calcZoomFactor(types::control map, client::invoker_lock* thread_lock) {
+    const auto COORDS_CENTER = types::vector2(50, 50);
+    const auto COORDS_TL = types::vector2(0, 100);
+    const auto COORDS_BR = types::vector2(100, 0);
+
+    float zoomFactor = 1.0f;
+    float widthInPixels = 0.0f;
+
+    while (abs(widthInPixels - RESOLUTION) > 0.1)
+    {
+        sqf::ctrl_map_anim_add(map, 0.0f, zoomFactor, COORDS_CENTER);
+        sqf::ctrl_map_anim_commit(map);
+
+        // wait for map to actually commit because ctrlMapWorldToScreen 
+        // won't work directly after mapCommit
+        while(!sqf::ctrl_map_anim_done(map)) {
+            thread_lock->unlock();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            thread_lock->lock();
+        }
+
+        // calculate width of 100m grid with current zoom factor
+        auto screenTL = sqf::ctrl_map_world_to_screen(map, COORDS_TL);
+        auto screenBR = sqf::ctrl_map_world_to_screen(map, COORDS_BR);
+        widthInPixels = (screenBR.x - screenTL.x) / sqf::pixel_w();
+
+        zoomFactor = zoomFactor / (RESOLUTION / widthInPixels);
+    }
+
+    return zoomFactor;
+}
+
 void mapTileGenerator(int levelOfDetail) {
 
     auto tileSize = (int)(100 * pow(2, 8 - levelOfDetail));
@@ -201,7 +236,9 @@ void mapTileGenerator(int levelOfDetail) {
         sqf::ctrl_commit(map, 0);
 
         auto numTiles = (int)floor(sqf::world_size() / tileSize);
-
+   
+        float zoomFactor = calcZoomFactor(map, &thread_lock);
+      
         // auto display46 = sqf::find_display(46);
         // sqf::display_add_event_handler(display46, "KeyDown", "params ['_displayorcontrol', '_key', '_shift', '_ctrl', '_alt'];	if (_key isEqualTo 88) then{ map_tiles_trigger = true; }");
         for (int yPos = numTiles; yPos >= 0; yPos--) {
@@ -216,15 +253,15 @@ void mapTileGenerator(int levelOfDetail) {
 
                 // sqf::set_variable(sqf::mission_namespace(), "map_tiles_trigger", false);
                 auto pos = types::vector2(xPos * tileSize + tileSize / 2, yPos * tileSize + tileSize / 2);
-                sqf::ctrl_map_anim_add(map, 0.0f, 0.01f * tileSize / 100, pos);
+
+                sqf::ctrl_map_anim_add(map, 0.0f, zoomFactor * tileSize / 100, pos);
                 sqf::ctrl_map_anim_commit(map);
 
-                // TODO: check main thread stuff sync
                 // wait for map to actually commit because ctrlMapWorldToScreen 
                 // won't work directly after mapCommit
                 while(!sqf::ctrl_map_anim_done(map)) {
                     thread_lock.unlock();
-                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     thread_lock.lock();
                 }
 
