@@ -308,7 +308,7 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
 	ret["displayName"] = sqf::world_name();
 	ret["minZoom"] = (int)right_arg[0];
 	ret["maxZoom"] = (int)right_arg[1];
-	ret["types"] = ["topo", "sat"];
+	ret["layers"] = { { {"name", "Topographic"}, {"path", "topo/"} }, { {"name", "Satellite"}, {"path", "sat/"} } };
 	
 	auto metaPath = basePath / sqf::world_name();
 
