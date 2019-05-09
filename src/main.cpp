@@ -225,7 +225,7 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
     }
 
     auto tileSize = (int)(100 * pow(2, 8 - levelOfDetail));
-    auto folderBasePath = basePath / sqf::world_name() / mapType / std::to_string(tileSize);
+    auto folderBasePath = basePath / sqf::world_name() / mapType / std::to_string(levelOfDetail);
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
     {
@@ -285,12 +285,6 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
 
                 auto w = (int)floor((screenBR.x - screenTL.x) / sqf::pixel_w());
                 auto h = (int)floor((screenBR.y - screenTL.y) / sqf::pixel_h());
-
-                // Debug
-                sqf::diag_log(pixelTL);
-                sqf::diag_log(w);
-                sqf::diag_log(h);
-                sqf::diag_log('---');
 
                 thread_lock.unlock();
 
