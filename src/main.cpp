@@ -347,6 +347,12 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
     ret["maxZoom"] = (int)right_arg[1];
     ret["grid"] = { {"offsetX", gridOffsetX }, {"offsetY", gridOffsetY } };
     ret["layers"] = { { {"name", "Topographic"}, {"path", "topo/"} }, { {"name", "Satellite"}, {"path", "sat/"} } };
+
+    auto locations = sqf::nearest_locations(types::vector3(worldSize / 2, worldSize / 2, 0), std::vector<std::string> {"nameVillage", "nameCity", "nameCityCapital"}, worldSize);
+
+    for (auto location : locations) {
+        ret["locations"].push_back({ { "name", sqf::text(location) }, { "pos", std::vector<float>{sqf::position(location).x, sqf::position(location).y, sqf::position(location).z}} });
+    }
     
     auto metaPath = basePath / sqf::world_name();
 
