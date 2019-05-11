@@ -4,6 +4,8 @@
 #include <chrono>
 #include <thread>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 
 // WINAPI
 #include <Windows.h>
@@ -12,11 +14,6 @@
 #include <GdiplusPixelFormats.h>
 #include <Gdiplusimaging.h>
 #include <atlimage.h>
-
-// Boost
-#include <boost/program_options.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
 
 // Json
 #include <nlohmann/json.hpp>
@@ -28,9 +25,6 @@ using namespace intercept;
 
 namespace fs = std::filesystem;
 
-namespace po = boost::program_options;
-namespace pt = boost::property_tree;
-
 namespace nl = nlohmann;
 
 using SQFPar = game_value_parameter;
@@ -39,38 +33,21 @@ bool stop = false;
 
 fs::path basePath;
 
-int intercept::api_version() { //This is required for the plugin to work.
+int intercept::api_version() {
     return INTERCEPT_SDK_API_VERSION;
 }
 
-void intercept::register_interfaces() {
-    
-}
+void intercept::register_interfaces() {}
 
 void intercept::pre_init() {
     intercept::sqf::diag_log("The Intercept template plugin is running!");
-    sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
+    sqf::set_variable(sqf::mission_namespace(), "grad_mtg_isRunning", false);
 
     basePath = "grad_mtg";
 
     if (!fs::exists(basePath)) {
         fs::create_directories(basePath);
     }
-    /*
-    TODO: config and stuff
-    try {
-        fs::path configFilePath("@grad_mtg/Config.ini");
-
-        if (!fs::exists(configFilePath))
-            throw std::filesystem::filesystem_error("File not found", configFilePath, std::error_code());
-
-        pt::ptree root;
-
-    }
-    catch (std::exception& ex) {
-        sqf::diag_log(ex.what());
-    }
-    */
 }
 
 /*
@@ -108,11 +85,14 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     return -1;  // Failure
 }
 
+/*
+    Takes a screenshot, crops it the grid size and save it as a png
+*/
 bool takeScreenShot(std::string file_name, types::vector2 tl, int w, int h) {
 
     // get the window/rectangle
     RECT rc;
-    HWND hwnd = FindWindow(_T("Arma 3"), NULL);    //the window can't be min
+    HWND hwnd = FindWindow(_T("Arma 3"), NULL);
     if (hwnd == NULL)
     {
         std::cout << "Couldn't find Arma Window!" << std::endl;
@@ -217,7 +197,7 @@ float calcZoomFactor(types::control map, client::invoker_lock* thread_lock) {
     return zoomFactor;
 }
 
-void mapTileGenerator(int levelOfDetail, int type = 0) {
+void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
 
     auto mapType = "topo";
     if (type > 0) {
@@ -231,7 +211,7 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
     {
         client::invoker_lock thread_lock;
 
-        sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", true);
+        sqf::set_variable(sqf::mission_namespace(), "grad_mtg_isRunning", true);
 
         sqf::cut_rsc(LAYER, "RscTitleDisplayEmpty", "PLAIN", 1.0f, false);
         auto display = sqf::get_variable(sqf::ui_namespace(), "RscTitleDisplayEmpty");
@@ -241,22 +221,18 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
         sqf::ctrl_commit(map, 0);
 
         auto numTiles = (int)floor(sqf::world_size() / tileSize);
-
         float zoomFactor = calcZoomFactor(map, &thread_lock);
-      
-        // auto display46 = sqf::find_display(46);
-        // sqf::display_add_event_handler(display46, "KeyDown", "params ['_displayorcontrol', '_key', '_shift', '_ctrl', '_alt'];	if (_key isEqualTo 88) then{ map_tiles_trigger = true; }");
-        for (int yPos = numTiles; yPos >= 0; yPos--) {
-            for (int xPos = 0; xPos <= numTiles; xPos++) {
+        int startRow = resumeOnRow == 0 ? numTiles : (numTiles - resumeOnRow);
 
+        for (int yPos = startRow; yPos >= 0; yPos--) {
+            for (int xPos = 0; xPos <= numTiles; xPos++) {
                 // check if we need to stop
                 if (stop) {
                     sqf::cut_fade_out(LAYER, 0);
-                    sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
+                    sqf::set_variable(sqf::mission_namespace(), "grad_mtg_isRunning", false);
                     return;
                 }
 
-                // sqf::set_variable(sqf::mission_namespace(), "map_tiles_trigger", false);
                 auto pos = types::vector2(xPos * tileSize + tileSize / 2, yPos * tileSize + tileSize / 2);
 
                 sqf::ctrl_map_anim_add(map, 0.0f, zoomFactor * tileSize / 100, pos);
@@ -319,7 +295,7 @@ void mapTileGenerator(int levelOfDetail, int type = 0) {
         }
 
         sqf::cut_fade_out(LAYER, 0);
-        sqf::set_variable(sqf::mission_namespace(), "grad_mtg_is_running", false);
+        sqf::set_variable(sqf::mission_namespace(), "grad_mtg_isRunning", false);
         sqf::hint("Done");
     }
 }
@@ -350,7 +326,7 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
 
     auto locations = sqf::nearest_locations(types::vector3(worldSize / 2, worldSize / 2, 0), std::vector<std::string> {"nameVillage", "nameCity", "nameCityCapital"}, worldSize);
 
-    for (auto location : locations) {
+    for (auto& location : locations) {
         ret["locations"].push_back({ { "name", sqf::text(location) }, { "pos", std::vector<float>{sqf::position(location).x, sqf::position(location).y, sqf::position(location).z}} });
     }
     
@@ -370,8 +346,13 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
 
     int lod = -1;
     int type = 0;
-    if (right_arg.size() == 2) {
-        // two params given
+    int row = 0;
+
+    if(right_arg.type_enum() == game_data_type::ARRAY) {
+        if (right_arg.size() < 2 || right_arg.size() > 3) {
+            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Wrong size of argument array"));
+            return false;
+        }
 
         if (right_arg[0].type_enum() != game_data_type::SCALAR) {
             gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("LOD has to be a number"));
@@ -383,17 +364,19 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
             return false;
         }
 
+        if (right_arg.size() == 3) {
+            if (right_arg[2].type_enum() != game_data_type::SCALAR) {
+                gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Row has to be a number"));
+                return false;
+            }
+            else {
+                row = (int)right_arg[2];
+            }
+        }
         lod = (int)right_arg[0];
         type = (int)right_arg[1];
 
-    } else {
-        // one param given
-
-        if (right_arg.type_enum() != game_data_type::SCALAR) {
-            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("LOD has to be a number"));
-            return false;
-        }
-
+    } else { // SCALAR
         lod = (int)right_arg;
     }
     
@@ -403,7 +386,7 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
     }
 
     stop = false;
-    std::thread iteraterThread(mapTileGenerator, lod, type);
+    std::thread iteraterThread(mapTileGenerator, lod, type, row);
     iteraterThread.detach();
     return true;
 }
@@ -415,8 +398,8 @@ game_value stopMapTileGen() {
 
 
 void intercept::pre_start() {
-    static auto grad_tig_start = client::host::register_sqf_command("grad_mtg_start", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::SCALAR);
-    static auto grad_tig_start_arr = client::host::register_sqf_command("grad_mtg_start", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::ARRAY);
-    static auto grad_tig_stop = client::host::register_sqf_command("grad_mtg_stop", "Stops the map tile generation", userFunctionWrapper<stopMapTileGen>, game_data_type::BOOL);
-    static auto grad_tig_meta = client::host::register_sqf_command("grad_mtg_meta", "Generates a meta.json", generateMetaFile, game_data_type::BOOL, game_data_type::ARRAY);
+    static auto grad_mtg_start = client::host::register_sqf_command("gradMtgStart", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::SCALAR);
+    static auto grad_mtg_start_arr = client::host::register_sqf_command("gradMtgStart", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::ARRAY);
+    static auto grad_mtg_stop = client::host::register_sqf_command("gradMtgStop", "Stops the map tile generation", userFunctionWrapper<stopMapTileGen>, game_data_type::BOOL);
+    static auto grad_mtg_meta = client::host::register_sqf_command("gradMtgMeta", "Generates a meta.json", generateMetaFile, game_data_type::BOOL, game_data_type::ARRAY);
 }

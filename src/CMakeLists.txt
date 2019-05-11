@@ -13,10 +13,6 @@ SOURCE_GROUP("src" FILES ${INTERCEPT_PLUGIN_SOURCES})
 #SOURCE_GROUP("src/utilities" FILES ${INTERCEPT_plugin_utilities_SOURCES})
 
 #----Don't change anything below this line
-#Boost
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.69 COMPONENTS program_options REQUIRED)
-
 # nlohmann json
 find_package(nlohmann_json CONFIG REQUIRED)
 
@@ -43,12 +39,10 @@ SOURCE_GROUP("intercept" FILES ${INTERCEPT_HOST_SOURCES})
 add_library( ${INTERCEPT_PLUGIN_NAME} SHARED ${INTERCEPT_PLUGIN_SOURCES} ${INTERCEPT_HOST_SOURCES})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${INTERCEPT_INCLUDE_PATH})
-include_directories(${Boost_INCLUDE_DIR})
 
 set_target_properties(${INTERCEPT_PLUGIN_NAME} PROPERTIES PREFIX "")
 set_target_properties(${INTERCEPT_PLUGIN_NAME} PROPERTIES FOLDER "${CMAKE_PROJECT_NAME}")
 
-target_link_libraries(${INTERCEPT_PLUGIN_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${INTERCEPT_PLUGIN_NAME} nlohmann_json nlohmann_json::nlohmann_json)
 
 if(CMAKE_COMPILER_IS_GNUCXX)

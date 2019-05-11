@@ -25,7 +25,6 @@ install:
   - vcpkg update
   - vcpkg integrate install
   - vcpkg install nlohmann-json:x64-windows-static
-  - vcpkg install boost-program-options:x64-windows-static boost-property-tree:x64-windows-static
   - cd %APPVEYOR_BUILD_FOLDER%
       
 before_build:
