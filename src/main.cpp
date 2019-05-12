@@ -391,6 +391,31 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
     return true;
 }
 
+void completeGen(int min, int max) {
+    for (int i = min; i <= max; i++) {
+        if(!stop) mapTileGenerator(i, 0);
+        if(!stop) mapTileGenerator(i, 1);
+    }
+}
+
+
+game_value startMapTileGenComplete(game_state& gs, SQFPar right_arg) {
+    if (right_arg.size() != 2) {
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Right parameter count != 2"));
+        return false;
+    }
+    else if (right_arg[0].type_enum() != game_data_type::SCALAR || right_arg[1].type_enum() != game_data_type::SCALAR) {
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
+        return false;
+    }
+
+    stop = false;
+
+    std::thread iteraterThread(completeGen, (int)right_arg[0], (int)right_arg[1]);
+    iteraterThread.detach();
+    return true;
+}
+
 game_value stopMapTileGen() {
     stop = true;
     return true;
@@ -402,4 +427,5 @@ void intercept::pre_start() {
     static auto grad_mtg_start_arr = client::host::register_sqf_command("gradMtgStart", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::ARRAY);
     static auto grad_mtg_stop = client::host::register_sqf_command("gradMtgStop", "Stops the map tile generation", userFunctionWrapper<stopMapTileGen>, game_data_type::BOOL);
     static auto grad_mtg_meta = client::host::register_sqf_command("gradMtgMeta", "Generates a meta.json", generateMetaFile, game_data_type::BOOL, game_data_type::ARRAY);
+    static auto grad_mtg_complete = client::host::register_sqf_command("gradMtgCompleteStart", "Starts the map tile generation for the whole map", startMapTileGenComplete, game_data_type::BOOL, game_data_type::ARRAY);
 }
