@@ -13,4 +13,4 @@ Copy-Item $env:APPVEYOR_BUILD_FOLDER\addons\$env:APPVEYOR_PROJECT_NAME.pbo $env:
 
 7z a "$env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_${env:APPVEYOR_REPO_COMMIT}.zip" "$env:APPVEYOR_BUILD_FOLDER\release\@$env:APPVEYOR_PROJECT_NAME" | Out-Null
 Write-Host "Zipped files"
-Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\release\@$env:APPVEYOR_PROJECT_NAME" 
+Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_${env:APPVEYOR_REPO_COMMIT}.zip" 
