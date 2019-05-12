@@ -4,6 +4,8 @@
 #include <chrono>
 #include <thread>
 #include <filesystem>
+#include <iostream>
+#include <fstream>
 
 // WINAPI
 #include <Windows.h>
@@ -22,9 +24,6 @@
 using namespace intercept;
 
 namespace fs = std::filesystem;
-
-namespace po = boost::program_options;
-namespace pt = boost::property_tree;
 
 namespace nl = nlohmann;
 
