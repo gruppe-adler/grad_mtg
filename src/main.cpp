@@ -13,11 +13,6 @@
 #include <Gdiplusimaging.h>
 #include <atlimage.h>
 
-// Boost
-#include <boost/program_options.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-
 // Json
 #include <nlohmann/json.hpp>
 
