@@ -63,9 +63,10 @@ for:
     artifact: $env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_${env:APPVEYOR_REPO_TAG_NAME}.zip
     draft: false
     prerelease: false
+    force_update: true
     on:
       branch: master
-      APPVEYOR_REPO_TAG: true
+      #APPVEYOR_REPO_TAG: true
 
   configuration: Release
   
