@@ -55,18 +55,18 @@ for:
       - appveyor
   
   deploy:
-    release: grad_mtg_$(APPVEYOR_REPO_TAG_NAME)
-    description: 'Gruppe Adler MTG $(APPVEYOR_REPO_TAG_NAME)'
-    provider: GitHub
-    auth_token:
-      secure: MXV97Ngzyn/C/TrCbWG4tdIZcxS/rTfojUq45KbgspSafhcTut3HseMq2002oYkg
-    artifact: $env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_${env:APPVEYOR_REPO_TAG_NAME}.zip
-    draft: false
-    prerelease: false
-    force_update: true
-    on:
-      branch: master
-      #APPVEYOR_REPO_TAG: true
+    - provider: GitHub
+      release: grad_mtg_$(APPVEYOR_REPO_TAG_NAME)
+      description: 'Gruppe Adler MTG $(APPVEYOR_REPO_TAG_NAME)'
+      auth_token:
+        secure: MXV97Ngzyn/C/TrCbWG4tdIZcxS/rTfojUq45KbgspSafhcTut3HseMq2002oYkg
+      artifact: $env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_${env:APPVEYOR_REPO_TAG_NAME}.zip
+      draft: false
+      prerelease: false
+      force_update: true
+      on:
+        branch: master
+        #APPVEYOR_REPO_TAG: true
 
   configuration: Release
   
