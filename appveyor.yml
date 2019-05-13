@@ -59,7 +59,7 @@ for:
     provider: GitHub
     auth_token:
       secure: MXV97Ngzyn/C/TrCbWG4tdIZcxS/rTfojUq45KbgspSafhcTut3HseMq2002oYkg
-    artifact: /.*\.nupkg/
+    artifact: $env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_${env:APPVEYOR_REPO_TAG_NAME}.zip
     draft: false
     prerelease: false
     on:
