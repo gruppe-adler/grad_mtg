@@ -52,7 +52,7 @@ for:
   branches:
     only:
       - master
-      
+      - appveyor
   
   deploy:
     release: grad_mtg_$(APPVEYOR_REPO_TAG_NAME)
