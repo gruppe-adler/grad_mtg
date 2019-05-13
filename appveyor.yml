@@ -6,8 +6,15 @@ branches:
   except:
     - playground
 
-configuration:
-- Debug
+-
+  branches:
+    only:
+      - master
+
+  configuration: Release
+  
+-
+  configuration: Debug
 
 cache: 
   - c:\tools\vcpkg\installed\
