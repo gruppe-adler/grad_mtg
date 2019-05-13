@@ -65,7 +65,7 @@ for:
       prerelease: false
       force_update: true
       on:
-        branch: master
+        branch: appveyor
         #APPVEYOR_REPO_TAG: true
 
   configuration: Release
