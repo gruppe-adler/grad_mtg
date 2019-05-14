@@ -11,7 +11,7 @@ option(USE_ENGINE_TYPES "USE_ENGINE_TYPES" OFF)
 
 #----Don't change anything below this line
 
-option(USE_64BIT_BUILD "USE_64BIT_BUILD" ON)
+option(USE_64BIT_BUILD "USE_64BIT_BUILD" OFF)
 set(INTERCEPT_LINK_TYPE "static")
 
 if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
