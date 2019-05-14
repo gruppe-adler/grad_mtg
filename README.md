@@ -4,7 +4,7 @@
 
 ---
 
-Gruppe Adler Map Tile Generator (grad_mtg) is a Arma 3 Modification built on [intercept](https://github.com/intercept/intercept), which allows the generation of so called map tiles. 
+Gruppe Adler Map Tile Generator (grad_mtg) is an Arma 3 Modification built on [intercept](https://github.com/intercept/intercept), which allows the generation of so called map tiles. 
   
 Check out our [FAQ](#FAQ) at the bottom of this README for more info.
 
