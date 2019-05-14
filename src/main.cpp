@@ -268,13 +268,13 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
 
                 try {
                     // arma coords start in the bootom left but tiles should start in the top left corner
-                    auto path = fs::absolute(folderBasePath / std::to_string((int)numTiles - yPos));
+                    auto path = fs::absolute(folderBasePath / std::to_string(xPos));
 
                     if (!fs::exists(path)) {
                         fs::create_directories(path);
                     }
 
-                    filePath = (path / std::to_string(xPos)).string();
+                    filePath = (path / std::to_string((int)numTiles - yPos)).string();
                     filePath.append(".png");
                 }
                 catch (fs::filesystem_error& ex) {
@@ -300,16 +300,7 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
     }
 }
 
-game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
-    if (right_arg.size() != 2) {
-        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Right parameter count != 2"));
-        return false;
-    }
-    else if (right_arg[0].type_enum() != game_data_type::SCALAR || right_arg[1].type_enum() != game_data_type::SCALAR) {
-        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
-        return false;
-    }
-
+game_value generateMetaFile(game_state &gs) {
     auto worldSize = (int)sqf::world_size();
     auto worldName = sqf::world_name();
     auto gridOffsetX = (int)sqf::get_number(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("Grid") >> ("offsetX"));
@@ -319,8 +310,8 @@ game_value generateMetaFile(game_state &gs, SQFPar right_arg) {
     ret["worldName"] = worldName;
     ret["worldSize"] = worldSize;
     ret["displayName"] = sqf::get_text(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("description"));
-    ret["minZoom"] = (int)right_arg[0];
-    ret["maxZoom"] = (int)right_arg[1];
+    ret["minLod"] = 0;
+    ret["maxLod"] = 8;
     ret["grid"] = { {"offsetX", gridOffsetX }, {"offsetY", gridOffsetY } };
     ret["layers"] = { { {"name", "Topographic"}, {"path", "topo/"} }, { {"name", "Satellite"}, {"path", "sat/"} } };
 
@@ -350,23 +341,23 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
 
     if(right_arg.type_enum() == game_data_type::ARRAY) {
         if (right_arg.size() < 2 || right_arg.size() > 3) {
-            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Wrong size of argument array"));
+            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "Wrong size of argument array"sv);
             return false;
         }
 
         if (right_arg[0].type_enum() != game_data_type::SCALAR) {
-            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("LOD has to be a number"));
+            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "LOD has to be a number"sv);
             return false;
         }
 
         if (right_arg[1].type_enum() != game_data_type::SCALAR) {
-            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Map-Type has to be a number"));
+            gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "Map-Type has to be a number"sv);
             return false;
         }
 
         if (right_arg.size() == 3) {
             if (right_arg[2].type_enum() != game_data_type::SCALAR) {
-                gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Row has to be a number"));
+                gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "Row has to be a number"sv);
                 return false;
             }
             else {
@@ -381,7 +372,7 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
     }
     
     if (lod < 0 || lod > 8) {
-        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("LOD has to be >= 0 and <= 8"));
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "LOD has to be >= 0 and <= 8"sv);
         return false;
     }
 
@@ -401,11 +392,11 @@ void completeGen(int min, int max) {
 
 game_value startMapTileGenComplete(game_state& gs, SQFPar right_arg) {
     if (right_arg.size() != 2) {
-        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("Right parameter count != 2"));
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "Right parameter count != 2"sv);
         return false;
     }
     else if (right_arg[0].type_enum() != game_data_type::SCALAR || right_arg[1].type_enum() != game_data_type::SCALAR) {
-        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, r_string("NaN"));
+        gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "NaN"sv);
         return false;
     }
 
@@ -426,6 +417,6 @@ void intercept::pre_start() {
     static auto grad_mtg_start = client::host::register_sqf_command("gradMtgStart", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::SCALAR);
     static auto grad_mtg_start_arr = client::host::register_sqf_command("gradMtgStart", "Starts the map tile generation", startMapTileGen, game_data_type::BOOL, game_data_type::ARRAY);
     static auto grad_mtg_stop = client::host::register_sqf_command("gradMtgStop", "Stops the map tile generation", userFunctionWrapper<stopMapTileGen>, game_data_type::BOOL);
-    static auto grad_mtg_meta = client::host::register_sqf_command("gradMtgMeta", "Generates a meta.json", generateMetaFile, game_data_type::BOOL, game_data_type::ARRAY);
+    static auto grad_mtg_meta = client::host::register_sqf_command("gradMtgMeta", "Generates a meta.json", generateMetaFile, game_data_type::BOOL);
     static auto grad_mtg_complete = client::host::register_sqf_command("gradMtgCompleteStart", "Starts the map tile generation for the whole map", startMapTileGenComplete, game_data_type::BOOL, game_data_type::ARRAY);
 }
