@@ -34,8 +34,6 @@ build_script:
   - msbuild vcproj\grad_mtg.sln /m 
   - msbuild vcproj64\grad_mtg.sln /m 
   - tools\hemtt.exe build
-  
-on_success:
   - ps: .\tools\packageAppveyor.ps1
 
 artifacts:
