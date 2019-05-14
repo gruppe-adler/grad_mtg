@@ -13,7 +13,6 @@ install:
   - vcpkg update
   - vcpkg integrate install
   - vcpkg install nlohmann-json:x86-windows-static nlohmann-json:x64-windows-static
-  #- vcpkg install boost-program-options:x64-windows-static boost-property-tree:x64-windows-static
   - cd %APPVEYOR_BUILD_FOLDER%
       
 before_build:
@@ -37,13 +36,13 @@ build_script:
   - tools\hemtt.exe build
   
 on_success:
-  - ps: .\tools\package_artifacts.ps1
+  - ps: .\tools\packageAppveyor.ps1
 
 artifacts:
-- path: build\win64\Debug\grad_mtg_x64.dll
-  name: win64_dll
-- path: build\win64\Debug\grad_mtg_x64.pdb
-  name: win64_pdb
+- path: build\win32
+  name: win32
+- path: build\win64
+  name: win64
 - path: addons\grad_mtg.pbo
   name: grad_mtg_pbo
 
@@ -56,17 +55,15 @@ for:
   
   deploy:
     - provider: GitHub
-      release: grad_mtg_$(APPVEYOR_REPO_TAG_NAME)
-      description: 'Gruppe Adler MTG $(APPVEYOR_REPO_TAG_NAME)'
       auth_token:
         secure: MXV97Ngzyn/C/TrCbWG4tdIZcxS/rTfojUq45KbgspSafhcTut3HseMq2002oYkg
-      artifact: $env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_${env:APPVEYOR_REPO_TAG_NAME}.zip
+      artifact: zip
       draft: false
       prerelease: false
       force_update: true
+      skip_tags: false
       on:
-        branch: appveyor
-        #APPVEYOR_REPO_TAG: true
+        APPVEYOR_REPO_TAG: true
 
   configuration: Release
   

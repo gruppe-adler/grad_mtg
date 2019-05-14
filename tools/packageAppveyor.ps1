@@ -25,5 +25,5 @@ if(![string]::IsNullOrEmpty($env:APPVEYOR_REPO_TAG_NAME)) {
 }
 
 7z a "$env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_$tagToAdd.zip" "$env:APPVEYOR_BUILD_FOLDER\release\@$env:APPVEYOR_PROJECT_NAME" | Out-Null
-Write-Host "Zipped files"
-Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_$tagToAdd.zip" 
+Write-Host "Zipped mod folder"
+Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\release\${env:APPVEYOR_PROJECT_NAME}_$tagToAdd.zip" -DeploymentName zip
