@@ -41,7 +41,7 @@ int intercept::api_version() {
 void intercept::register_interfaces() {}
 
 void intercept::pre_init() {
-    intercept::sqf::diag_log("The Intercept template plugin is running!");
+    intercept::sqf::diag_log("The grad_mtg is running!");
     sqf::set_variable(sqf::mission_namespace(), "grad_mtg_isRunning", false);
 
     basePath = "grad_mtg";
