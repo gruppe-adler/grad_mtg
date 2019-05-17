@@ -12,6 +12,7 @@ Check out our [FAQ](#FAQ) at the bottom of this README for more info.
 Download the latest version of the mod from our [releases page](https://github.com/gruppe-adler/grad_mtg/releases). The only dependency, **which has to be loaded as well** is [intercept](https://steamcommunity.com/sharedfiles/filedetails/?id=1645973522). 
 
 ## How to use?
+0. **MAKE SURE YOUR GRAPHICS SETTING "DISPLAY" IS ON "FULLSCREEN WINDOW"**
 1. Start arma with grad_mtg and intercept.
 2. Go into the editor and open the map you want to generate tiles of.
 3.  Place a player-unit and start the scenario in singleplayer.
