@@ -18,7 +18,7 @@ Download the latest version of the mod from our [releases page](https://github.c
 4. Once the mission has loaded press ESC and take a look at the debug console.
 5. Type the command you wish (see below) into the `Execute` field and press `LOCAL EXEC`.
 6. The statement should return `true` (check the black line directly below the text field) and there mustn't be any script errors.
-7. **Close the ESC Menu** and wait five seconds to let grad_mtg do its thing.
+7. **Close the ESC Menu**, or the debug console will be visible on the tiles, and wait five seconds to let grad_mtg do its thing.
 
 ## Commands
 ### `gradMtgStart`
