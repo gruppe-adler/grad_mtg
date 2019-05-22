@@ -42,16 +42,16 @@ Download the latest version of the mod from our [releases page](https://github.c
 |||
 |Syntax| **gradMtgStart** [levelOfDetail, mapType]
 |||
-|Parameters|[levelOfDetail, mapType, startRow] `<ARRAY>`|
+|Parameters|[levelOfDetail, mapType, startColumn] `<ARRAY>`|
 ||levelOfDetail `<NUMBER>`: LOD which should be generated|
 ||mapType `<NUMBER>`: Map-Type (0 = topographic / 1 = satellite)|
-||startRow *(optional)* `<NUMBER>`: Row with which should be stated. (The top most row is 0). All previous rows won't be exported. This allows to "continue" a previously aborted export. |
+||startColumn *(optional)* `<NUMBER>`: Column with which should be stated. (The left most column is 0). All previous columns won't be exported. This allows to "continue" a previously aborted export. |
 |||
 |Return Value| Generation started correctly? `<BOOLEAN>`|
 |||
 |Examples|`gradMtgStart [3, 0];` Will generate topographic map-tiles for LOD 3|  
 ||`gradMtgStart [7, 1];` Will generate satellite map-tiles for LOD 7|
-||`gradMtgStart [7, 1, 10];` Will generate satellite map-tiles for LOD 7 starting with row 10|
+||`gradMtgStart [7, 1, 10];` Will generate satellite map-tiles for LOD 7 starting with column 10|
 
 ### `gradMtgStop`
 |**Syntax**| |  

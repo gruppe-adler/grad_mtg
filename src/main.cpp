@@ -199,7 +199,7 @@ float calcZoomFactor(types::control map, client::invoker_lock* thread_lock) {
     return zoomFactor;
 }
 
-void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
+void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnColumn = 0) {
 
     auto mapType = "topo";
     if (type > 0) {
@@ -227,14 +227,13 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
 
         auto numTiles = (int)floor(sqf::world_size() / tileSize);
         float zoomFactor = calcZoomFactor(map, &thread_lock);
-        int startRow = resumeOnRow == 0 ? numTiles : (numTiles - resumeOnRow);
 
         std::stringstream hintStream;
         hintStream << "Starting with LOD: " << levelOfDetail << " MapType: " << mapType;
         sqf::hint(hintStream.str());
 
-        for (int yPos = startRow; yPos >= 0; yPos--) {
-            for (int xPos = 0; xPos <= numTiles; xPos++) {
+        for (int xPos = resumeOnColumn; xPos <= numTiles; xPos++) {
+            for (int yPos = numTiles; yPos >= 0; yPos--) {
                 // check if we need to stop
                 if (stop) {
                     sqf::cut_fade_out(LAYER, 0);
@@ -346,7 +345,7 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
 
     int lod = -1;
     int type = 0;
-    int row = 0;
+    int column = 0;
 
     if(right_arg.type_enum() == game_data_type::ARRAY) {
         if (right_arg.size() < 2 || right_arg.size() > 3) {
@@ -366,11 +365,11 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
 
         if (right_arg.size() == 3) {
             if (right_arg[2].type_enum() != game_data_type::SCALAR) {
-                gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "Row has to be a number"sv);
+                gs.set_script_error(types::game_state::game_evaluator::evaluator_error_type::assertion_failed, "Column has to be a number"sv);
                 return false;
             }
             else {
-                row = (int)right_arg[2];
+                column = (int)right_arg[2];
             }
         }
         lod = (int)right_arg[0];
@@ -386,7 +385,7 @@ game_value startMapTileGen(game_state &gs, SQFPar right_arg) {
     }
 
     stop = false;
-    std::thread iteraterThread(mapTileGenerator, lod, type, row);
+    std::thread iteraterThread(mapTileGenerator, lod, type, column);
     iteraterThread.detach();
     return true;
 }
