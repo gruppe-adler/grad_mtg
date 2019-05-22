@@ -39,7 +39,9 @@
 
 # Others
 .vs
+.vscode
 build
+CMakeSettings.json
 
 # CMake
 CMakeCache.txt

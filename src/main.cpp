@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 // WINAPI
 #include <Windows.h>
@@ -206,7 +207,10 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
     }
 
     auto tileSize = (int)(100 * pow(2, 8 - levelOfDetail));
-    auto folderBasePath = basePath / sqf::world_name() / mapType / std::to_string(levelOfDetail);
+
+    auto worldName = sqf::world_name();
+    std::transform(worldName.begin(), worldName.end(), worldName.begin(), ::tolower);
+    auto folderBasePath = basePath / worldName / mapType / std::to_string(levelOfDetail);
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
     {
@@ -224,6 +228,10 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
         auto numTiles = (int)floor(sqf::world_size() / tileSize);
         float zoomFactor = calcZoomFactor(map, &thread_lock);
         int startRow = resumeOnRow == 0 ? numTiles : (numTiles - resumeOnRow);
+
+        std::stringstream hintStream;
+        hintStream << "Starting with LOD: " << levelOfDetail << " MapType: " << mapType;
+        sqf::hint(hintStream.str());
 
         for (int yPos = startRow; yPos >= 0; yPos--) {
             for (int xPos = 0; xPos <= numTiles; xPos++) {
@@ -297,13 +305,13 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnRow = 0) {
 
         sqf::cut_fade_out(LAYER, 0);
         sqf::set_variable(sqf::mission_namespace(), "grad_mtg_isRunning", false);
-        sqf::hint("Done");
     }
 }
 
 game_value generateMetaFile(game_state &gs) {
     auto worldSize = (int)sqf::world_size();
     auto worldName = sqf::world_name();
+    std::transform(worldName.begin(), worldName.end(), worldName.begin(), ::tolower);
     auto gridOffsetX = (int)sqf::get_number(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("Grid") >> ("offsetX"));
     auto gridOffsetY = (int)sqf::get_number(sqf::config_entry(sqf::config_file()) >> ("CfgWorlds") >> worldName >> ("Grid") >> ("offsetY"));
 
@@ -322,7 +330,7 @@ game_value generateMetaFile(game_state &gs) {
         ret["locations"].push_back({ { "name", sqf::text(location) }, { "pos", std::vector<float>{sqf::position(location).x, sqf::position(location).y, sqf::position(location).z}} });
     }
     
-    auto metaPath = basePath / sqf::world_name();
+    auto metaPath = basePath / worldName;
 
     if (!fs::exists(metaPath)) {
         fs::create_directories(metaPath);
