@@ -325,8 +325,13 @@ game_value generateMetaFile(game_state &gs) {
 
     auto locations = sqf::nearest_locations(types::vector3(worldSize / 2, worldSize / 2, 0), std::vector<std::string> {"nameVillage", "nameCity", "nameCityCapital"}, worldSize);
 
-    for (auto& location : locations) {
-        ret["locations"].push_back({ { "name", sqf::text(location) }, { "pos", std::vector<float>{sqf::position(location).x, sqf::position(location).y, sqf::position(location).z}} });
+    if (locations.empty()) {
+        ret["locations"] = nl::json::array();
+    }
+    else {
+        for (auto& location : locations) {
+            ret["locations"].push_back({ { "name", sqf::text(location) }, { "pos", std::vector<float>{sqf::position(location).x, sqf::position(location).y, sqf::position(location).z}} });
+        }
     }
     
     auto metaPath = basePath / worldName;
