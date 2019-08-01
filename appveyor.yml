@@ -11,6 +11,7 @@ install:
   - cd c:\tools\vcpkg
   - git pull
   - vcpkg update
+  - .\bootstrap-vcpkg.bat
   - vcpkg integrate install
   - vcpkg install nlohmann-json:x86-windows-static nlohmann-json:x64-windows-static
   - cd %APPVEYOR_BUILD_FOLDER%
