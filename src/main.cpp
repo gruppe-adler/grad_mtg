@@ -225,15 +225,15 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnColumn = 0) {
         sqf::ctrl_set_position(map, sqf::safe_zone_x(), sqf::safe_zone_y(), sqf::safe_zone_w(), sqf::safe_zone_h());
         sqf::ctrl_commit(map, 0);
 
-        auto numTiles = (int)floor(sqf::world_size() / tileSize);
+        auto numTiles = (int)std::ceil(sqf::world_size() / tileSize);
         float zoomFactor = calcZoomFactor(map, &thread_lock);
 
         std::stringstream hintStream;
         hintStream << "Starting with LOD: " << levelOfDetail << " MapType: " << mapType;
         sqf::hint(hintStream.str());
 
-        for (int xPos = resumeOnColumn; xPos <= numTiles; xPos++) {
-            for (int yPos = numTiles; yPos >= 0; yPos--) {
+        for (int xPos = resumeOnColumn; xPos < numTiles; xPos++) {
+            for (int yPos = numTiles - 1; yPos >= 0; yPos--) {
                 // check if we need to stop
                 if (stop) {
                     sqf::cut_fade_out(LAYER, 0);
@@ -282,7 +282,7 @@ void mapTileGenerator(int levelOfDetail, int type = 0, int resumeOnColumn = 0) {
                         fs::create_directories(path);
                     }
 
-                    filePath = (path / std::to_string((int)numTiles - yPos)).string();
+                    filePath = (path / std::to_string((int)numTiles - yPos - 1)).string();
                     filePath.append(".png");
                 }
                 catch (fs::filesystem_error& ex) {
