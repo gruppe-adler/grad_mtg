@@ -1,3 +1,9 @@
+# Please check out [grad_meh](https://github.com/gruppe-adler/grad_meh)!! 
+
+---
+
+---
+
 # Gruppe Adler Map Tile Generator
 
 [![Build status](https://ci.appveyor.com/api/projects/status/fblksnwl7eb2stxy/branch/master?svg=true)](https://ci.appveyor.com/project/TheWillard/grad-mtg/branch/master)
